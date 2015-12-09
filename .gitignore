@@ -22,7 +22,6 @@ Binaries
 
 # API key to AAM
 key.yaml
-key.config
 
 # System Cache
 .DS_Store
