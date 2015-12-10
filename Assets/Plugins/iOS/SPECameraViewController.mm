@@ -26,6 +26,8 @@
 @property(nonatomic, strong) AVCaptureStillImageOutput *backCameraStillImageOutput;
 @property(nonatomic, strong) AVCaptureVideoPreviewLayer *backCameraPreviewLayer;
 
+@property(nonatomic) BOOL ifNeedShowCameraDeniedMessage;
+
 @end
 
 @implementation SPECameraViewController
@@ -43,6 +45,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.ifNeedShowCameraDeniedMessage = NO;
     switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo]) {
         case AVAuthorizationStatusAuthorized:
             [self setupCamera];
@@ -54,16 +57,16 @@
                     [self setupCamera];
                 }
                 else {
-                    [self cameraDenied];
+                    self.ifNeedShowCameraDeniedMessage = YES;
                 }
             }];
         }
             break;
         case AVAuthorizationStatusRestricted:
-            [self cameraDenied];
+            self.ifNeedShowCameraDeniedMessage = YES;
             break;
         case AVAuthorizationStatusDenied:
-            [self cameraDenied];
+            self.ifNeedShowCameraDeniedMessage = YES;
             break;
     }
 }
@@ -86,6 +89,10 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
+    if self.ifNeedShowCameraDeniedMessage {
+        [self cameraDenied];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
