@@ -7,7 +7,8 @@ using System;
 
 public static class FaceTexture {
 
-	public static Texture2D LoadTexure(int width, int height, string filePath) {
+	public static Texture2D LoadTexure(int width, int height, string filePath)
+	{
 		Texture2D texture = new Texture2D(width, height);
 		
 		FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -19,24 +20,26 @@ public static class FaceTexture {
 		return texture;
 	}
 
-	public static IEnumerator LoadTextureFromFilePath( string filePath, Action<Texture2D> del, Action<string> errorDel )
+	public static IEnumerator LoadTextureFromFilePath( string filePath, Action<Texture2D> delegateMethod, Action<string> errorDelegateMethod )
 	{
 		using( WWW www = new WWW( filePath ) )
 		{
 			yield return www;
 			
-			if( !string.IsNullOrEmpty( www.error ) )
-			{
-				if( errorDel != null )
-					errorDel( www.error );
+			if( !string.IsNullOrEmpty( www.error ) ){
+				if( errorDelegateMethod != null ){
+					errorDelegateMethod( www.error );
+				}
 			}
 			
-			Texture2D tex = www.texture;
+			Texture2D texture = www.texture;
 			
-			if( tex != null )
-				del( tex );
-			else
-				errorDel( "www.texture is null." );
+			if( texture != null ){
+				delegateMethod( texture );
+			}
+			else{
+				errorDelegateMethod( "www.texture is null." );
+			}
 		}
 	}
 

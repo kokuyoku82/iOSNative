@@ -6,7 +6,13 @@ public class iOSNativeCamera : MonoBehaviour {
 	#if UNITY_IOS
 	public delegate void OnTakePhoto (string imagePath);
 	public static OnTakePhoto onTakePhotoDel = null;
-	
+	private static string buttonName;
+
+	void Start(){
+		buttonName = this.gameObject.name;
+		print (buttonName);
+	}
+
 	/**
      呼叫 _ShowCameraView 可把客製化layout的iOS原生相機喚醒
      同時要指定callback目標的gameObject名稱及method name
@@ -21,7 +27,7 @@ public class iOSNativeCamera : MonoBehaviour {
 	public static void TakePhoto () {
 		if (Application.platform == RuntimePlatform.IPhonePlayer) {
 			print ("iOS");
-			_ShowCameraView ("TakePhoto", "receiveFacePath");
+			_ShowCameraView (buttonName, "receiveFacePath");
 		}
 	}
 	
