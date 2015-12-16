@@ -90,7 +90,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    if self.ifNeedShowCameraDeniedMessage {
+    if (self.ifNeedShowCameraDeniedMessage) {
         [self cameraDenied];
     }
 }

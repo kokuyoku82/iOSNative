@@ -20,25 +20,27 @@ public static class FaceTexture {
 		return texture;
 	}
 
-	public static IEnumerator LoadTextureFromFilePath( string filePath, Action<Texture2D> delegateMethod, Action<string> errorDelegateMethod )
+	// If www got the texture from the filePath, the function successHandler is called.
+	// If www has error or www.texture is null, the function errorHandler is called.
+	public static IEnumerator LoadTextureFromFilePath( string filePath, Action<Texture2D> successHandler, Action<string> errorHandler )
 	{
 		using( WWW www = new WWW( filePath ) )
 		{
 			yield return www;
 			
 			if( !string.IsNullOrEmpty( www.error ) ){
-				if( errorDelegateMethod != null ){
-					errorDelegateMethod( www.error );
+				if( errorHandler != null ){
+					errorHandler( www.error );
 				}
 			}
 			
 			Texture2D texture = www.texture;
 			
 			if( texture != null ){
-				delegateMethod( texture );
+				successHandler( texture );
 			}
 			else{
-				errorDelegateMethod( "www.texture is null." );
+				errorHandler( "www.texture is null. Please check the type of file." );
 			}
 		}
 	}

@@ -6,11 +6,11 @@ public class iOSNativeCamera : MonoBehaviour {
 	#if UNITY_IOS
 	public delegate void OnTakePhoto (string imagePath);
 	public static OnTakePhoto onTakePhotoDel = null;
-	private static string buttonName;
+	private static string objectName;
 
 	void Start(){
-		buttonName = this.gameObject.name;
-		print (buttonName);
+		objectName = this.gameObject.name;
+		print (objectName);
 	}
 
 	/**
@@ -20,14 +20,14 @@ public class iOSNativeCamera : MonoBehaviour {
      參數內容為拍照後圖檔的存放路徑，如果內容為空字串時，代表存檔失敗
      */
 
-	// objectName is the same as the name of button added this component.
+	// objectName is the same as the name of object added this component.
 	[DllImport ("__Internal")]
 	private static extern void _ShowCameraView (string objectName, string methodName);
 	
 	public static void TakePhoto () {
 		if (Application.platform == RuntimePlatform.IPhonePlayer) {
 			print ("iOS");
-			_ShowCameraView (buttonName, "receiveFacePath");
+			_ShowCameraView (objectName, "receiveFacePath");
 		}
 	}
 	
