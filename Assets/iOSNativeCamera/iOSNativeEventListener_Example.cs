@@ -15,12 +15,12 @@ public class iOSNativeEventListener_Example : MonoBehaviour
 	#if UNITY_IOS
 	void OnEnable()
 	{
-		iOSNativeCamera.onTakePhotoDel += ImagePickerChoseImage;
+		iOSNativeCamera.onTakePhotoDel += GetImagePath;
 	}
 	
 	void OnDisable()
 	{
-		iOSNativeCamera.onTakePhotoDel -= ImagePickerChoseImage;
+		iOSNativeCamera.onTakePhotoDel -= GetImagePath;
 	}
 
 
@@ -30,20 +30,20 @@ public class iOSNativeEventListener_Example : MonoBehaviour
 	}
 
 	
-	void ImagePickerChoseImage( string imagePath )
+	void GetImagePath( string imagePath )
 	{
-		Debug.Log( "image picker chose image: " + imagePath );
-		StartCoroutine( FaceTexture.LoadTextureFromFilePath( "file://" + imagePath, TextureLoaded, TextureLoadFailed ) );
+		Debug.Log( "Get image path: " + imagePath );
+		StartCoroutine( FaceTexture.LoadTextureFromFilePath( "file://" + imagePath, LoadedTexture, LoadedTextureFailed ) );
 	}
 
-	public void TextureLoaded( Texture2D texture )
+	public void LoadedTexture( Texture2D texture )
 	{
 		uiPhotoView.texture = texture;
 	}
 	
-	public void TextureLoadFailed( string error )
+	public void LoadedTextureFailed( string error )
 	{
-		Debug.Log( "TextureLoadFailed: " + error );
+		Debug.Log( "Loaded texture failed: " + error );
 	}
 	#endif
 }
