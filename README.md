@@ -1,8 +1,8 @@
 # iOSNative
 
 ## Attention! Daniel said
-- Adding Component iOSNativeCamera.cs to the button.   
-   (將iOSNativeCamera.cs附加到啟動相機的button物件上)
+- Adding Component iOSNativeCamera.cs to the object that will be used to turn on the camera.   
+   (將iOSNativeCamera.cs附加到用來啟動相機的物件上)
 
 - Copying the SPECamera.xcassets folder into Xcode project.
 
