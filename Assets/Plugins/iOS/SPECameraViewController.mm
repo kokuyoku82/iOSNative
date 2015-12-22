@@ -536,6 +536,10 @@
     return _backCameraPreviewLayer;
 }
 
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
+
 @end
 
 static SPECameraViewController *cameraViewController = nil;
