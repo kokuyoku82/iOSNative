@@ -10,6 +10,8 @@
 #import <AVFoundation/AVFoundation.h>
 #import "UIImage+SPEOrientation.h"
 
+#import <Photos/Photos.h>
+
 @interface SPECameraViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property(nonatomic, strong) NSString *unityObjectName;
@@ -357,7 +359,21 @@
             if (image) {
                 image = [image fixOrientation];
                 __block NSString *imagePath = [self saveImage:image];
+    
+                // Save into Photo Library
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    // Request creating an asset from the image.
+                    [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                    if (success) {
+                        NSLog(@"Photo saved to camera roll");
+                    } else {
+                        NSLog(@"Failed to save to camera roll: %@", error.debugDescription);
+                    }
+                    
+                }];
                 
+                // Send back to Unity
                 [self dismissViewControllerAnimated:YES completion:^{
                     [self sendImagePathToUnity:imagePath];
                 }];
