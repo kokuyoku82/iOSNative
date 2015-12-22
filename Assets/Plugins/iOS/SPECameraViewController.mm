@@ -27,6 +27,7 @@
 @property(nonatomic, strong) AVCaptureVideoPreviewLayer *backCameraPreviewLayer;
 
 @property(nonatomic) BOOL ifNeedShowCameraDeniedMessage;
+@property(nonatomic) BOOL shouldShowHelp;
 
 @end
 
@@ -36,7 +37,9 @@
     [super loadView];
     
     self.view = [[UIView alloc] init];
-    [self setupHelpButton];
+    if (_shouldShowHelp) {
+        [self setupHelpButton];
+    }
     [self setupCloseButton];
     [self setupBottomView];
     [self setupVideoView];
@@ -544,13 +547,14 @@ extern "C" {
      callback只有一個參數，呼叫時間為使用者拍攝或選取完照片，取消拍攝則不會呼叫
      參數內容為拍照後圖檔的存放路徑，如果內容為空字串時，代表存檔失敗
      */
-    void _ShowCameraView(const char* objectName, const char* functionName) {
+    void _ShowCameraView(const char* objectName, const char* functionName, bool showHelp=false) {
         if (!cameraViewController) {
             cameraViewController = [[SPECameraViewController alloc] init];
         }
         
         cameraViewController.unityObjectName = [NSString stringWithUTF8String:objectName];
         cameraViewController.unityFunctionName = [NSString stringWithUTF8String:functionName];
+        cameraViewController.shouldShowHelp = showHelp;
         
         UIViewController *rootViewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         [rootViewController presentViewController:cameraViewController animated:YES completion:nil];
