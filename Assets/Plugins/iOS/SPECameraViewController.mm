@@ -96,7 +96,7 @@
     [super viewDidAppear:animated];
     
     if (self.ifNeedShowCameraDeniedMessage) {
-        [self cameraDenied];
+        [self displayPrivacySettingsInstruction];
     }
 }
 
@@ -186,7 +186,7 @@
     [self.bottomView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.bottomView attribute:NSLayoutAttributeLeft multiplier:1 constant:0]];
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.width]];
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
-
+    
     image = [UIImage imageNamed:@"icon_create_camera_photos"];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
@@ -304,7 +304,7 @@
 
 - (void)closeAction:(UIButton *)sender {
     [self dismissViewControllerAnimated:YES completion:^{
-
+        
     }];
 }
 
@@ -362,9 +362,9 @@
             if (image) {
                 image = [image fixOrientation];
                 __block NSString *imagePath = [self saveImage:image];
-    
+                
                 [self requestForPhotoLibraryAuthorization];
-    
+                
                 // Save into Photo Library
                 [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
                     // Request creating an asset from the image.
@@ -448,58 +448,38 @@
     }
 }
 
-- (void)cameraDenied {
-    UIAlertController *alertView = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Error", nil) message:nil preferredStyle:UIAlertControllerStyleAlert];
-    
-    NSString *alertText;
-    NSURL *openSettingsURL = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-    if (openSettingsURL) {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Touch the Go button below to open the Settings app.\n\n2. Touch Privacy.\n\n3. Turn the Camera on.\n\n4. Open this app and try again.", nil);
-        
-        [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Go", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[UIApplication sharedApplication] openURL:openSettingsURL];
-        }]];
-    }
-    else {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Close this app.\n\n2. Open the Settings app.\n\n3. Scroll to the bottom and select this app in the list.\n\n4. Touch Privacy.\n\n5. Turn the Camera on.\n\n6. Open this app and try again.", nil);
-    }
-    alertView.message = alertText;
-    
-    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
-    
-    [self presentViewController:alertView animated:YES completion:nil];
-}
-
 - (void)requestForPhotoLibraryAuthorization {
     if ([PHPhotoLibrary authorizationStatus] != PHAuthorizationStatusAuthorized) {
         [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            [self photoLibraryDenied];
+            [self displayPrivacySettingsInstruction];
             NSLog(@"Photo library authorization status %ld", status);
         }];
     }
 }
 
-- (void)photoLibraryDenied {
+- (void)displayPrivacySettingsInstruction {
     UIAlertController *alertView = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Error", nil) message:nil preferredStyle:UIAlertControllerStyleAlert];
     
     NSString *alertText;
     NSURL *openSettingsURL = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-    if (openSettingsURL) {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Touch the Go button below to open the Settings app.\n\n2. Touch Privacy.\n\n3. Turn the Camera on.\n\n4. Open this app and try again.", nil);
-        
-        [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Go", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[UIApplication sharedApplication] openURL:openSettingsURL];
-        }]];
-    }
-    else {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Close this app.\n\n2. Open the Settings app.\n\n3. Scroll to the bottom and select this app in the list.\n\n4. Touch Privacy.\n\n5. Turn the Camera on.\n\n6. Open this app and try again.", nil);
-    }
+    
+    if(openSettingsURL==nil)  // Only iOS 8+ is supported
+        return;
+    
+    alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Touch the Go button below to open the Settings app.\n\n2. Touch Privacy.\n\n3. Turn the Photo and Camera on.\n\n4. Open this app and try again.", nil);
+    
+    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Go", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:openSettingsURL];
+    }]];
+    
     alertView.message = alertText;
     
-    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
+    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:nil]];
     
     [self presentViewController:alertView animated:YES completion:nil];
 }
+
+
 
 #pragma mark - UIImagePickerControllerDelegate
 
