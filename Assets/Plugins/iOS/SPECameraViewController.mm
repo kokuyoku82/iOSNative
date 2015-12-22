@@ -462,9 +462,7 @@
     
     [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
     
-    [self dismissViewControllerAnimated:YES completion:^{
-        [self presentViewController:alertView animated:YES completion:nil];
-    }];
+    [self presentViewController:alertView animated:YES completion:nil];
 }
 
 #pragma mark - UIImagePickerControllerDelegate
