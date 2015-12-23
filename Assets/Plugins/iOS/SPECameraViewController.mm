@@ -456,7 +456,7 @@
     __block NSString *imagePath = nil;
     
     if (image) {
-        [image fixOrientation];
+        image = [image fixOrientation];
         imagePath = [self saveImage:image];
     }
     
