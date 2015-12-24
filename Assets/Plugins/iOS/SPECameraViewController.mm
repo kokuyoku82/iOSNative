@@ -309,14 +309,19 @@
 }
 
 - (void)albumAction:(UIButton *)sender {
-    // Request for Photo Library read and write permission
-    [self requestForPhotoLibraryAuthorization];
+    // Pick photo from library is required. So request permission aggressively.
+    [self requestForPhotoLibraryAuthorization:^(BOOL grant) {
+        if (grant) {
+            UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+            imagePickerController.delegate = self;
+            imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            
+            [self presentViewController:imagePickerController animated:YES completion:nil];
+        } else {
+            [self displayPrivacySettingsInstruction];
+        }
+    }];
     
-    UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
-    imagePickerController.delegate = self;
-    imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    
-    [self presentViewController:imagePickerController animated:YES completion:nil];
 }
 
 - (void)shutterAction:(UIButton *)sender {
@@ -363,20 +368,26 @@
                 image = [image fixOrientation];
                 __block NSString *imagePath = [self saveImage:image];
                 
-                [self requestForPhotoLibraryAuthorization];
-                
-                // Save into Photo Library
-                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                    // Request creating an asset from the image.
-                    [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-                } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                    if (success) {
-                        NSLog(@"Photo saved to camera roll");
+                // Save photo taken from camera is optional. Just use system default to ask, and fail silently.
+                [self requestForPhotoLibraryAuthorization:^(BOOL grant) {
+                    if (grant) {
+                        // Save into Photo Library
+                        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                            // Request creating an asset from the image.
+                            [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                            if (success) {
+                                NSLog(@"Photo saved to camera roll");
+                            } else {
+                                NSLog(@"Failed to save to camera roll: %@", error.debugDescription);
+                            }
+                            
+                        }];
                     } else {
-                        NSLog(@"Failed to save to camera roll: %@", error.debugDescription);
+                        NSLog(@"No permission for saving to photo library");
                     }
-                    
                 }];
+                
                 
                 // Send back to Unity
                 [self dismissViewControllerAnimated:YES completion:^{
@@ -448,11 +459,24 @@
     }
 }
 
-- (void)requestForPhotoLibraryAuthorization {
-    if ([PHPhotoLibrary authorizationStatus] != PHAuthorizationStatusAuthorized) {
+#pragma mark - Photo library authorizaiton
+
+- (void)requestForPhotoLibraryAuthorization:(void(^)(BOOL grant))handler{
+    
+    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
+        handler(true);
+        
+    } else {
+        // It could be NotDetermined, Restricted, Denied
         [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            [self displayPrivacySettingsInstruction];
-            NSLog(@"Photo library authorization status %ld", status);
+            // For the first time an alert should be diplayed and user might be albe to grant
+            // permission to access
+            if (status == PHAuthorizationStatusAuthorized) {
+                handler(true);
+            } else {
+                handler(false);
+                NSLog(@"Photo library authorization status %ld", status);
+            }
         }];
     }
 }
