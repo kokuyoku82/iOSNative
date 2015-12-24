@@ -10,6 +10,8 @@
 #import <AVFoundation/AVFoundation.h>
 #import "UIImage+SPEOrientation.h"
 
+#import <Photos/Photos.h>
+
 @interface SPECameraViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property(nonatomic, strong) NSString *unityObjectName;
@@ -27,6 +29,7 @@
 @property(nonatomic, strong) AVCaptureVideoPreviewLayer *backCameraPreviewLayer;
 
 @property(nonatomic) BOOL ifNeedShowCameraDeniedMessage;
+@property(nonatomic) BOOL shouldShowHelp;
 
 @end
 
@@ -36,7 +39,9 @@
     [super loadView];
     
     self.view = [[UIView alloc] init];
-    [self setupHelpButton];
+    if (_shouldShowHelp) {
+        [self setupHelpButton];
+    }
     [self setupCloseButton];
     [self setupBottomView];
     [self setupVideoView];
@@ -91,7 +96,7 @@
     [super viewDidAppear:animated];
     
     if (self.ifNeedShowCameraDeniedMessage) {
-        [self cameraDenied];
+        [self displayPrivacySettingsInstruction];
     }
 }
 
@@ -181,7 +186,7 @@
     [self.bottomView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.bottomView attribute:NSLayoutAttributeLeft multiplier:1 constant:0]];
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.width]];
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
-
+    
     image = [UIImage imageNamed:@"icon_create_camera_photos"];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
@@ -299,16 +304,24 @@
 
 - (void)closeAction:(UIButton *)sender {
     [self dismissViewControllerAnimated:YES completion:^{
-
+        
     }];
 }
 
 - (void)albumAction:(UIButton *)sender {
-    UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
-    imagePickerController.delegate = self;
-    imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    // Pick photo from library is required. So request permission aggressively.
+    [self requestForPhotoLibraryAuthorization:^(BOOL grant) {
+        if (grant) {
+            UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
+            imagePickerController.delegate = self;
+            imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            
+            [self presentViewController:imagePickerController animated:YES completion:nil];
+        } else {
+            [self displayPrivacySettingsInstruction];
+        }
+    }];
     
-    [self presentViewController:imagePickerController animated:YES completion:nil];
 }
 
 - (void)shutterAction:(UIButton *)sender {
@@ -355,6 +368,28 @@
                 image = [image fixOrientation];
                 __block NSString *imagePath = [self saveImage:image];
                 
+                // Save photo taken from camera is optional. Just use system default to ask, and fail silently.
+                [self requestForPhotoLibraryAuthorization:^(BOOL grant) {
+                    if (grant) {
+                        // Save into Photo Library
+                        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                            // Request creating an asset from the image.
+                            [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+                        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                            if (success) {
+                                NSLog(@"Photo saved to camera roll");
+                            } else {
+                                NSLog(@"Failed to save to camera roll: %@", error.debugDescription);
+                            }
+                            
+                        }];
+                    } else {
+                        NSLog(@"No permission for saving to photo library");
+                    }
+                }];
+                
+                
+                // Send back to Unity
                 [self dismissViewControllerAnimated:YES completion:^{
                     [self sendImagePathToUnity:imagePath];
                 }];
@@ -380,7 +415,7 @@
     self.frontCameraPreviewLayer.hidden = !self.backCameraPreviewLayer.hidden;
 }
 
-#pragma mark - camera
+#pragma mark - Camera & Photo Library
 
 - (void)setupCamera {
     NSArray *devices = [AVCaptureDevice devices];
@@ -424,29 +459,51 @@
     }
 }
 
-- (void)cameraDenied {
+#pragma mark - Photo library authorizaiton
+
+- (void)requestForPhotoLibraryAuthorization:(void(^)(BOOL grant))handler{
+    
+    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
+        handler(true);
+        
+    } else {
+        // It could be NotDetermined, Restricted, Denied
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            // For the first time an alert should be diplayed and user might be albe to grant
+            // permission to access
+            if (status == PHAuthorizationStatusAuthorized) {
+                handler(true);
+            } else {
+                handler(false);
+                NSLog(@"Photo library authorization status %ld", status);
+            }
+        }];
+    }
+}
+
+- (void)displayPrivacySettingsInstruction {
     UIAlertController *alertView = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Error", nil) message:nil preferredStyle:UIAlertControllerStyleAlert];
     
     NSString *alertText;
     NSURL *openSettingsURL = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-    if (openSettingsURL) {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Touch the Go button below to open the Settings app.\n\n2. Touch Privacy.\n\n3. Turn the Camera on.\n\n4. Open this app and try again.", nil);
-        
-        [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Go", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[UIApplication sharedApplication] openURL:openSettingsURL];
-        }]];
-    }
-    else {
-        alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Close this app.\n\n2. Open the Settings app.\n\n3. Scroll to the bottom and select this app in the list.\n\n4. Touch Privacy.\n\n5. Turn the Camera on.\n\n6. Open this app and try again.", nil);
-    }
+    
+    if(openSettingsURL==nil)  // Only iOS 8+ is supported
+        return;
+    
+    alertText = NSLocalizedString(@"It looks like your privacy settings are preventing us from accessing your camera to do barcode scanning. You can fix this by doing the following:\n\n1. Touch the Go button below to open the Settings app.\n\n2. Touch Privacy.\n\n3. Turn the Photo and Camera on.\n\n4. Open this app and try again.", nil);
+    
+    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Go", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:openSettingsURL];
+    }]];
+    
     alertView.message = alertText;
     
-    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
+    [alertView addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:nil]];
     
-    [self dismissViewControllerAnimated:YES completion:^{
-        [self presentViewController:alertView animated:YES completion:nil];
-    }];
+    [self presentViewController:alertView animated:YES completion:nil];
 }
+
+
 
 #pragma mark - UIImagePickerControllerDelegate
 
@@ -533,6 +590,10 @@
     return _backCameraPreviewLayer;
 }
 
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
+
 @end
 
 static SPECameraViewController *cameraViewController = nil;
@@ -544,13 +605,14 @@ extern "C" {
      callback只有一個參數，呼叫時間為使用者拍攝或選取完照片，取消拍攝則不會呼叫
      參數內容為拍照後圖檔的存放路徑，如果內容為空字串時，代表存檔失敗
      */
-    void _ShowCameraView(const char* objectName, const char* functionName) {
+    void _ShowCameraView(const char* objectName, const char* functionName, bool showHelp=false) {
         if (!cameraViewController) {
             cameraViewController = [[SPECameraViewController alloc] init];
         }
         
         cameraViewController.unityObjectName = [NSString stringWithUTF8String:objectName];
         cameraViewController.unityFunctionName = [NSString stringWithUTF8String:functionName];
+        cameraViewController.shouldShowHelp = showHelp;
         
         UIViewController *rootViewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         [rootViewController presentViewController:cameraViewController animated:YES completion:nil];

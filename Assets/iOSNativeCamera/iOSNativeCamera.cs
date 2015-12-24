@@ -22,7 +22,7 @@ public class iOSNativeCamera : MonoBehaviour {
 
 	// objectName is the same as the name of object added this component.
 	[DllImport ("__Internal")]
-	private static extern void _ShowCameraView (string objectName, string methodName);
+	private static extern void _ShowCameraView (string objectName, string methodName, bool showHelp=false);
 	
 	public static void TakePhoto () {
 		if (Application.platform == RuntimePlatform.IPhonePlayer) {
