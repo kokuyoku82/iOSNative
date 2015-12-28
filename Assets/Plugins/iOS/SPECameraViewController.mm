@@ -60,6 +60,7 @@
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 if (granted) {
                     [self setupCamera];
+                    [self showCamera];
                 }
                 else {
                     self.ifNeedShowCameraDeniedMessage = YES;
@@ -85,11 +86,8 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
-    [self.frontCameraSession startRunning];
-    [self.backCameraSession stopRunning];
-    self.frontCameraPreviewLayer.hidden = NO;
-    self.backCameraPreviewLayer.hidden = YES;
+
+    [self showCamera];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -457,6 +455,13 @@
             }
         }
     }
+}
+
+- (void)showCamera {
+    [self.frontCameraSession startRunning];
+    [self.backCameraSession stopRunning];
+    self.frontCameraPreviewLayer.hidden = NO;
+    self.backCameraPreviewLayer.hidden = YES;
 }
 
 #pragma mark - Photo library authorizaiton
