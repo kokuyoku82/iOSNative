@@ -6,6 +6,8 @@
 
 - Copying the SPECamera.xcassets folder into Xcode project.
 
+- Linking Photos.framework.
+
 ## License
 
 iOSNative is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
