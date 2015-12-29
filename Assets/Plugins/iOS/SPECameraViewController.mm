@@ -124,13 +124,21 @@
 
 #pragma mark - layout
 
+- (UIImage *)imageForResource:(NSString *)fileName withExtension:(NSString *)extension {
+    NSBundle *imageBundle = [NSBundle bundleWithURL:[[NSBundle mainBundle]URLForResource:@"SPECamera" withExtension:@"bundle"]];
+    
+    NSString *imagePath = [bundle pathForResource:fileName ofType:extension];
+    
+    return [UIImage imageWithContentsOfFile:imagePath];
+}
+
 - (void)setupHelpButton {
-    UIImage *image = [UIImage imageNamed:@"Create_camera_ico_info_n"];
+    UIImage *image = [self imageForResource:@"Create_camera_ico_info_n" withExtension:"png"];
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = NO;
     [button setImage:image forState:UIControlStateNormal];
-    [button setImage:[UIImage imageNamed:@"Create_camera_ico_info_p"] forState:UIControlStateHighlighted];
+    [button setImage:[self imageForResource:@"Create_camera_ico_info_p" withExtension:"png"] forState:UIControlStateHighlighted];
     [button addTarget:self action:@selector(helpAction:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
     
@@ -142,12 +150,12 @@
 }
 
 - (void)setupCloseButton {
-    UIImage *image = [UIImage imageNamed:@"Create_camera_ico_close_n"];
+    UIImage *image = [self imageForResource:@"Create_camera_ico_close_n" withExtension:"png"];
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = NO;
     [button setImage:image forState:UIControlStateNormal];
-    [button setImage:[UIImage imageNamed:@"Create_camera_ico_close_p"] forState:UIControlStateHighlighted];
+    [button setImage:[self imageForResource:@"Create_camera_ico_close_p" withExtension:"png"] forState:UIControlStateHighlighted];
     [button addTarget:self action:@selector(closeAction:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
     
@@ -173,7 +181,7 @@
     UIImage *image;
     UIButton *button;
     
-    image = [UIImage imageNamed:@"create_camera_plane_L"];
+    image = [self imageForResource:@"create_camera_plane_L" withExtension:"png"];
     UIImageView *planeLImageView = [[UIImageView alloc] initWithImage:image];
     planeLImageView.backgroundColor = [UIColor clearColor];
     [self.bottomView addSubview:planeLImageView];
@@ -185,12 +193,12 @@
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.width]];
     [planeLImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeLImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
-    image = [UIImage imageNamed:@"icon_create_camera_photos"];
+    image = [self imageForResource:@"icon_create_camera_photos" withExtension:"png"];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = NO;
     [button setImage:image forState:UIControlStateNormal];
-    [button setImage:[UIImage imageNamed:@"icon_create_camera_photos_pressed"] forState:UIControlStateHighlighted];
+    [button setImage:[self imageForResource:@"icon_create_camera_photos_pressed" withExtension:"png"] forState:UIControlStateHighlighted];
     [button addTarget:self action:@selector(albumAction:) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomView addSubview:button];
     
@@ -201,7 +209,7 @@
     [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
     
-    image = [UIImage imageNamed:@"create_camera_plane_bg"];
+    image = [self imageForResource:@"create_camera_plane_bg" withExtension:"png"];
     UIImageView *planeBGImageView = [[UIImageView alloc] initWithImage:image];
     planeBGImageView.contentMode = UIViewContentModeScaleToFill;
     planeBGImageView.backgroundColor = [UIColor clearColor];
@@ -214,7 +222,7 @@
     [planeBGImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeBGImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
     
-    image = [UIImage imageNamed:@"create_camera_plane_M"];
+    image = [self imageForResource:@"create_camera_plane_M" withExtension:"png"];
     UIImageView *planeMImageView = [[UIImageView alloc] initWithImage:image];
     planeMImageView.backgroundColor = [UIColor clearColor];
     [self.bottomView addSubview:planeMImageView];
@@ -227,7 +235,7 @@
     [planeMImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeMImageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.width]];
     [planeMImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeMImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
-    image = [UIImage imageNamed:@"create_camera_btn_camera"];
+    image = [self imageForResource:@"create_camera_btn_camera" withExtension:"png"];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = NO;
@@ -242,7 +250,7 @@
     [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
     
-    image = [UIImage imageNamed:@"create_camera_plane_bg"];
+    image = [self imageForResource:@"create_camera_plane_bg" withExtension:"png"];
     planeBGImageView = [[UIImageView alloc] initWithImage:image];
     planeBGImageView.contentMode = UIViewContentModeScaleToFill;
     planeBGImageView.backgroundColor = [UIColor clearColor];
@@ -255,7 +263,7 @@
     [planeBGImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeBGImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
     
-    image = [UIImage imageNamed:@"create_camera_plane_R"];
+    image = [self imageForResource:@"create_camera_plane_R" withExtension:"png"];
     UIImageView *planeRImageView = [[UIImageView alloc] initWithImage:image];
     planeRImageView.backgroundColor = [UIColor clearColor];
     [self.bottomView addSubview:planeRImageView];
@@ -268,12 +276,12 @@
     [planeRImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeRImageView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.width]];
     [planeRImageView addConstraint:[NSLayoutConstraint constraintWithItem:planeRImageView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:image.size.height]];
     
-    image = [UIImage imageNamed:@"icon_create_camera_switch"];
+    image = [self imageForResource:@"icon_create_camera_switch" withExtension:"png"];
     button = [UIButton buttonWithType:UIButtonTypeCustom];
     button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = NO;
     [button setImage:image forState:UIControlStateNormal];
-    [button setImage:[UIImage imageNamed:@"icon_create_camera_switch_pressed"] forState:UIControlStateHighlighted];
+    [button setImage:[self imageForResource:@"icon_create_camera_switch_pressed" withExtension:"png"] forState:UIControlStateHighlighted];
     [button addTarget:self action:@selector(switchCameraAction:) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomView addSubview:button];
     
